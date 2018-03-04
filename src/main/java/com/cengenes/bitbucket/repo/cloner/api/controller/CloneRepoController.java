@@ -29,7 +29,7 @@ public class CloneRepoController {
 
        final RepoCloneResponse repoCloneResponse = cloneCreateRequest.cloneRepos(cloneRequest);
 
-        return new ResponseEntity<>(repoCloneResponse, HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(repoCloneResponse, HttpStatus.CREATED);
 
     }
 
