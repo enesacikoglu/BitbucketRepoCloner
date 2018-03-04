@@ -41,7 +41,7 @@ public class CloneCreateRequestService {
 
     public RepoCloneResponse cloneRepos(CloneRequest cloneRequest) {
 
-        final RepoCloneResponse repoCloneResponse = new RepoCloneResponse();
+        final RepoCloneResponse repoCloneResponse = new RepoCloneResponse(ResponseStatusType.FAILURE.getValue());
 
         // Obtain repos
         final Optional<JSONArray> repositories;
@@ -67,12 +67,10 @@ public class CloneCreateRequestService {
 
                     }
                 }
+                repoCloneResponse.setStatus(ResponseStatusType.SUCCESS.getValue());
             }
-            repoCloneResponse.setStatus(ResponseStatusType.SUCCESS.getValue());
-
 
         } catch (UnirestException e) {
-            repoCloneResponse.setStatus(ResponseStatusType.FAILURE.getValue());
             log.error("Error on obtaining Repos {}", e);
         }
 

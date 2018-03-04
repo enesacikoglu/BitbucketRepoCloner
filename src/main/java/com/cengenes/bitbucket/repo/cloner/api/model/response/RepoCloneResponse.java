@@ -5,6 +5,10 @@ public final class  RepoCloneResponse {
 
     private String status;
 
+    public RepoCloneResponse(String status) {
+        this.status = status;
+    }
+
     public String getStatus() {
         return status;
     }
