@@ -10,7 +10,7 @@ public class CloneRequest {
 
     private String password;
 
-    private String projectCount;
+    private Integer projectCount;
 
     private String localRepoDirectory;
 
@@ -47,11 +47,11 @@ public class CloneRequest {
         this.password = password;
     }
 
-    public String getProjectCount() {
+    public Integer getProjectCount() {
         return projectCount;
     }
 
-    public void setProjectCount(String projectCount) {
+    public void setProjectCount(Integer projectCount) {
         this.projectCount = projectCount;
     }
 

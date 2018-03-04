@@ -44,30 +44,30 @@ public class CloneCreateRequestService {
         final RepoCloneResponse repoCloneResponse = new RepoCloneResponse();
 
         // Obtain repos
-       final Optional<JSONArray> repositories;
+        final Optional<JSONArray> repositories;
 
         try {
             repositories = obtainRepositories(cloneRequest);
 
-            if(repositories.isPresent()){
-            for (int k = 0; k < repositories.get().length(); k++) {
-                JSONObject repository = (JSONObject) repositories.get().get(k);
-                String repoName = repository.getString("name");
-                log.debug("Repository name: {}", repoName);
+            if (repositories.isPresent()) {
+                for (int k = 0; k < repositories.get().length(); k++) {
+                    JSONObject repository = (JSONObject) repositories.get().get(k);
+                    String repoName = repository.getString("name");
+                    log.debug("Repository name: {}", repoName);
 
-                log.debug("Repository local directory where clone to {}", cloneRequest.getLocalRepoDirectory());
-                final JSONArray cloneURLs = (JSONArray) ((JSONObject) repository.get("links")).get("clone");
-                for (int r = 0; r < cloneURLs.length(); r++) {
-                    if (((JSONObject) cloneURLs.get(r)).get("name").toString().equals("http")) {
-                        log.debug("HTTP repository link for clone found.");
-                        cloneRepository(cloneRequest);
-                    } else {
-                        log.debug(((JSONObject) cloneURLs.get(r)).get("name").toString());
+                    log.debug("Repository local directory where clone to {}", cloneRequest.getLocalRepoDirectory());
+                    final JSONArray cloneURLs = (JSONArray) ((JSONObject) repository.get("links")).get("clone");
+                    for (int r = 0; r < cloneURLs.length(); r++) {
+                        if (((JSONObject) cloneURLs.get(r)).get("name").toString().equals("http")) {
+                            log.debug("HTTP repository link for clone found.");
+                            cloneRepository(cloneRequest);
+                        } else {
+                            log.debug(((JSONObject) cloneURLs.get(r)).get("name").toString());
+                        }
+
                     }
-
                 }
             }
-        }
             repoCloneResponse.setStatus(ResponseStatusType.SUCCESS.getValue());
 
 
@@ -84,8 +84,11 @@ public class CloneCreateRequestService {
     private Optional<JSONArray> obtainRepositories(CloneRequest cloneRequest) throws UnirestException {
         log.info("Obtaining repos from {}", cloneRequest.getProjectKey());
 
+        final Integer PROJECT_COUNT_TO_CLONE = cloneRequest.getProjectCount()!=null?cloneRequest.getProjectCount():100;
+
+
         final String REPO_URL = cloneRequest.getBitbucketServerUrl() + REST_API_SUFFIX + API_PROJECTS
-                + "/" + cloneRequest.getProjectKey() + API_REPOSITORIES + "?limit=100";
+                + "/" + cloneRequest.getProjectKey() + API_REPOSITORIES +"?limit=" +PROJECT_COUNT_TO_CLONE;
 
         return Optional.of(Unirest.get(REPO_URL)
                 .basicAuth(cloneRequest.getUserName(), cloneRequest.getPassword())
@@ -98,7 +101,7 @@ public class CloneCreateRequestService {
 
     private void cloneRepository(CloneRequest cloneRequest) {
 
-        log.info("Going to clone repo {},Repository will be stored at {}", cloneRequest.getBitbucketServerUrl(),cloneRequest.getLocalRepoDirectory());
+        log.info("Going to clone repo {},Repository will be stored at {}", cloneRequest.getBitbucketServerUrl(), cloneRequest.getLocalRepoDirectory());
 
         try {
             Git.cloneRepository()
@@ -108,7 +111,7 @@ public class CloneCreateRequestService {
                     .setCredentialsProvider(new UsernamePasswordCredentialsProvider(cloneRequest.getUserName(), cloneRequest.getPassword()))
                     .call();
         } catch (GitAPIException e) {
-            log.error("Error on cloning repository from {} into local directory {}" ,cloneRequest.getBitbucketServerUrl() ,cloneRequest.getLocalRepoDirectory() + ". Check the path.");
+            log.error("Error on cloning repository from {} into local directory {}", cloneRequest.getBitbucketServerUrl(), cloneRequest.getLocalRepoDirectory() + ". Check the path.");
         }
     }
 }
