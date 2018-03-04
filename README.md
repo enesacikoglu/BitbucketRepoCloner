@@ -1,9 +1,8 @@
 # SpringBootBitbucketRepoClonerApi
 
+First of All thanks to archenroot https://gist.github.com/archenroot/1d11f58d182163ce55bdafcdfe11d411
 
-This is a sample cloner rest api project which uses spring boot and activemq.
-You can change mail smtp configurations from application.yml file.
-
+This is a sample cloner rest api project which uses spring boot ,unirest and jgit api.
 
 # Test
 
