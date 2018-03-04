@@ -6,7 +6,7 @@ This is a sample cloner rest api project which uses spring boot ,unirest and jgi
 
 # Test
 
-You can post the sample json request to the url: localhost:8080//api/repo/clone
+You can post the sample json request to the url: localhost:8080/api/repo/clone
 
 
 {
