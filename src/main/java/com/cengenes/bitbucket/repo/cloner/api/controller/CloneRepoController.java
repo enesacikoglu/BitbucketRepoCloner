@@ -25,11 +25,11 @@ public class CloneRepoController {
     }
 
     @RequestMapping(value = "/clone", method = RequestMethod.POST)
-    public ResponseEntity<RepoCloneResponse> send(@RequestBody final CloneRequest cloneRequest) {
+    public ResponseEntity<RepoCloneResponse> clone(@RequestBody final CloneRequest cloneRequest) {
 
        final RepoCloneResponse repoCloneResponse = cloneCreateRequest.cloneRepos(cloneRequest);
 
-        return new ResponseEntity<>(repoCloneResponse, HttpStatus.CREATED);
+        return new ResponseEntity<>(repoCloneResponse, HttpStatus.NO_CONTENT);
 
     }
 
