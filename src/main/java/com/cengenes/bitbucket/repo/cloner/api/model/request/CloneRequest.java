@@ -1,17 +1,25 @@
 package com.cengenes.bitbucket.repo.cloner.api.model.request;
 
+import javax.validation.constraints.NotNull;
+
 public class CloneRequest {
 
+    @NotNull
     private String bitbucketServerUrl;
 
+    @NotNull
     private String projectKey;
 
+    @NotNull
     private String userName;
 
+    @NotNull
     private String password;
+
 
     private Integer projectCount;
 
+    @NotNull
     private String localRepoDirectory;
 
 

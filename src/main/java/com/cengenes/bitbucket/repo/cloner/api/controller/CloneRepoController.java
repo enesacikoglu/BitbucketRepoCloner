@@ -2,7 +2,6 @@ package com.cengenes.bitbucket.repo.cloner.api.controller;
 
 import com.cengenes.bitbucket.repo.cloner.api.model.request.CloneRequest;
 import com.cengenes.bitbucket.repo.cloner.api.model.response.RepoCloneResponse;
-import com.cengenes.bitbucket.repo.cloner.api.model.response.ResponseStatusType;
 import com.cengenes.bitbucket.repo.cloner.api.service.CloneCreateRequestService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping("/api/repo")
 public class CloneRepoController {
@@ -20,12 +21,12 @@ public class CloneRepoController {
     private final CloneCreateRequestService cloneCreateRequest;
 
     @Autowired
-    public CloneRepoController(CloneCreateRequestService cloneCreateRequest) {
+    public CloneRepoController(final CloneCreateRequestService cloneCreateRequest) {
         this.cloneCreateRequest = cloneCreateRequest;
     }
 
     @RequestMapping(value = "/clone", method = RequestMethod.POST)
-    public ResponseEntity<RepoCloneResponse> clone(@RequestBody final CloneRequest cloneRequest) {
+    public ResponseEntity<RepoCloneResponse> clone(@Valid @RequestBody final CloneRequest cloneRequest) {
 
        final RepoCloneResponse repoCloneResponse = cloneCreateRequest.cloneRepos(cloneRequest);
 
