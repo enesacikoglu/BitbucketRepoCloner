@@ -43,12 +43,14 @@ public class CloneCreateRequestService {
                     JSONObject repository = (JSONObject) repositories.get().get(k);
                     String repoName = repository.getString("name");
                     log.debug("Repository name: {}", repoName);
+                    String repoDir = cloneRequest.getLocalRepoDirectory() + "/" + cloneRequest.getProjectKey()+ "/" + repoName;
                     log.debug("Repository local directory where clone to {}", cloneRequest.getLocalRepoDirectory());
                     final JSONArray cloneURLs = (JSONArray) ((JSONObject) repository.get("links")).get("clone");
                     for (int r = 0; r < cloneURLs.length(); r++) {
                         if (((JSONObject) cloneURLs.get(r)).get("name").toString().equals("http")) {
                             log.debug("HTTP repository link for clone found.");
-                            cloneRepository(cloneRequest);
+                            String repoURL = ((JSONObject) cloneURLs.get(r)).getString("href");
+                            cloneRepository(cloneRequest.getUserName(),cloneRequest.getPassword(),repoDir,repoURL);
                         } else {
                             log.debug(((JSONObject) cloneURLs.get(r)).get("name").toString());
                         }
@@ -76,13 +78,13 @@ public class CloneCreateRequestService {
                 .getObject().getJSONArray("values"));
     }
 
-    private final void cloneRepository(final CloneRequest cloneRequest) throws GitAPIException {
-        log.info("Going to clone repo {},Repository will be stored at {}", cloneRequest.getBitbucketServerUrl(), cloneRequest.getLocalRepoDirectory());
+    private final void cloneRepository(final String userName,final String password,final String repoDir,final String repoURL) throws GitAPIException {
+        log.info("Going to clone repo {},Repository will be stored at {}", repoURL,repoDir);
         Git.cloneRepository()
-                .setURI(cloneRequest.getBitbucketServerUrl())
-                .setDirectory(new File(cloneRequest.getLocalRepoDirectory()))
+                .setURI(repoURL)
+                .setDirectory(new File(repoDir))
                 .setCloneAllBranches(true)
-                .setCredentialsProvider(new UsernamePasswordCredentialsProvider(cloneRequest.getUserName(), cloneRequest.getPassword()))
+                .setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, password))
                 .call();
     }
 }
