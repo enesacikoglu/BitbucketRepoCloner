@@ -48,12 +48,12 @@ public class CloneCreateRequestService {
                     String repoURL = repo.getString("href");
                             try {
                                 cloneRepository(cloneRequest.getUserName(), cloneRequest.getPassword(), getLocalRepoDir(cloneRequest, repoName), repoURL);
+                                repoCloneResponse.setStatus(ResponseStatusType.SUCCESS.getValue());
                             } catch (GitAPIException e) {
                                 log.error("Error on cloning Repos {}", e);
                             }
                         }
                 );
-                repoCloneResponse.setStatus(ResponseStatusType.SUCCESS.getValue());
             }
         } catch (UnirestException e) {
             log.error("Error on obtaining Repos {}", e);
