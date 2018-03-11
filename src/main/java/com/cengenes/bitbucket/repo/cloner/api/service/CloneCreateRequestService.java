@@ -17,6 +17,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -43,7 +44,7 @@ public class CloneCreateRequestService {
             final Optional<JSONArray> repositories = obtainRepositories(cloneRequest);
             if (repositories.isPresent()) {
                 final Stream<Object> objectStream = arrayToStream(repositories.get());
-                objectStream.map(object->(JSONObject)object).forEach(repo -> {
+                objectStream.filter(Objects::nonNull).map(object->(JSONObject)object).forEach(repo -> {
                     String repoName = repo.getString("name");
                     String repoURL = repo.getString("href");
                             try {
@@ -61,14 +62,6 @@ public class CloneCreateRequestService {
         return repoCloneResponse;
     }
 
-    private final String getLocalRepoDir(final CloneRequest cloneRequest, final String repoName) {
-        return cloneRequest.getLocalRepoDirectory() + "/" + cloneRequest.getProjectKey() + "/" + repoName;
-    }
-
-    private final Stream<Object> arrayToStream(final JSONArray array) {
-        return StreamSupport.stream(array.spliterator(), false);
-    }
-
     private final Optional<JSONArray> obtainRepositories(final CloneRequest cloneRequest) throws UnirestException {
         log.info("Obtaining repos from {}", cloneRequest.getProjectKey());
         return Optional.of(Unirest.get(getRepoUrl(cloneRequest))
@@ -77,6 +70,14 @@ public class CloneCreateRequestService {
                 .asJson()
                 .getBody()
                 .getObject().getJSONArray("values"));
+    }
+
+    private final Stream<Object> arrayToStream(final JSONArray array) {
+        return StreamSupport.stream(array.spliterator(), false);
+    }
+
+    private final String getLocalRepoDir(final CloneRequest cloneRequest, final String repoName) {
+        return cloneRequest.getLocalRepoDirectory() + "/" + cloneRequest.getProjectKey() + "/" + repoName;
     }
 
     private final String getRepoUrl(final CloneRequest cloneRequest) {
