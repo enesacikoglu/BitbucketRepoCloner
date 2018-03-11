@@ -1,6 +1,7 @@
 package com.cengenes.bitbucket.repo.cloner.api.service;
 
 
+import com.cengenes.bitbucket.repo.cloner.api.model.Repo;
 import com.cengenes.bitbucket.repo.cloner.api.model.request.CloneRequest;
 import com.cengenes.bitbucket.repo.cloner.api.model.response.RepoCloneResponse;
 import com.cengenes.bitbucket.repo.cloner.api.model.response.ResponseStatusType;
@@ -14,8 +15,11 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
 import java.io.File;
 import java.util.Optional;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 @Service
 public class CloneCreateRequestService {
@@ -35,42 +39,39 @@ public class CloneCreateRequestService {
     public final RepoCloneResponse cloneRepos(CloneRequest cloneRequest) {
         final RepoCloneResponse repoCloneResponse = new RepoCloneResponse(ResponseStatusType.FAILURE.getValue());
         // Obtain repos
-        final Optional<JSONArray> repositories;
         try {
-            repositories = obtainRepositories(cloneRequest);
+            final Optional<JSONArray> repositories = obtainRepositories(cloneRequest);
             if (repositories.isPresent()) {
-                for (int k = 0; k < repositories.get().length(); k++) {
-                    JSONObject repository = (JSONObject) repositories.get().get(k);
-                    String repoName = repository.getString("name");
-                    log.debug("Repository name: {}", repoName);
-                    String repoDir = cloneRequest.getLocalRepoDirectory() + "/" + cloneRequest.getProjectKey()+ "/" + repoName;
-                    log.debug("Repository local directory where clone to {}", cloneRequest.getLocalRepoDirectory());
-                    final JSONArray cloneURLs = (JSONArray) ((JSONObject) repository.get("links")).get("clone");
-                    for (int r = 0; r < cloneURLs.length(); r++) {
-                        if (((JSONObject) cloneURLs.get(r)).get("name").toString().equals("http")) {
-                            log.debug("HTTP repository link for clone found.");
-                            String repoURL = ((JSONObject) cloneURLs.get(r)).getString("href");
-                            cloneRepository(cloneRequest.getUserName(),cloneRequest.getPassword(),repoDir,repoURL);
-                        } else {
-                            log.debug(((JSONObject) cloneURLs.get(r)).get("name").toString());
+                final Stream<Object> objectStream = arrayToStream(repositories.get());
+                objectStream.map(object->(JSONObject)object).forEach(repo -> {
+                    String repoName = repo.getString("name");
+                    String repoURL = repo.getString("href");
+                            try {
+                                cloneRepository(cloneRequest.getUserName(), cloneRequest.getPassword(), getLocalRepoDir(cloneRequest, repoName), repoURL);
+                            } catch (GitAPIException e) {
+                                log.error("Error on cloning Repos {}", e);
+                            }
                         }
-                    }
-                }
+                );
                 repoCloneResponse.setStatus(ResponseStatusType.SUCCESS.getValue());
             }
-        } catch (UnirestException | GitAPIException e) {
+        } catch (UnirestException e) {
             log.error("Error on obtaining Repos {}", e);
         }
         return repoCloneResponse;
     }
 
+    private final String getLocalRepoDir(final CloneRequest cloneRequest, final String repoName) {
+        return cloneRequest.getLocalRepoDirectory() + "/" + cloneRequest.getProjectKey() + "/" + repoName;
+    }
+
+    private final Stream<Object> arrayToStream(final JSONArray array) {
+        return StreamSupport.stream(array.spliterator(), false);
+    }
+
     private final Optional<JSONArray> obtainRepositories(final CloneRequest cloneRequest) throws UnirestException {
         log.info("Obtaining repos from {}", cloneRequest.getProjectKey());
-        final Integer PROJECT_COUNT_TO_CLONE = cloneRequest.getProjectCount() != null ? cloneRequest.getProjectCount() : 100;
-        final String REPO_URL = cloneRequest.getBitbucketServerUrl() + REST_API_SUFFIX + API_PROJECTS
-                + "/" + cloneRequest.getProjectKey() + API_REPOSITORIES + "?limit=" + PROJECT_COUNT_TO_CLONE;
-
-        return Optional.of(Unirest.get(REPO_URL)
+        return Optional.of(Unirest.get(getRepoUrl(cloneRequest))
                 .basicAuth(cloneRequest.getUserName(), cloneRequest.getPassword())
                 .header("accept", "application/json")
                 .asJson()
@@ -78,8 +79,14 @@ public class CloneCreateRequestService {
                 .getObject().getJSONArray("values"));
     }
 
-    private final void cloneRepository(final String userName,final String password,final String repoDir,final String repoURL) throws GitAPIException {
-        log.info("Going to clone repo {},Repository will be stored at {}", repoURL,repoDir);
+    private final String getRepoUrl(final CloneRequest cloneRequest) {
+        final Integer PROJECT_COUNT_TO_CLONE = cloneRequest.getProjectCount() != null ? cloneRequest.getProjectCount() : 100;
+        return cloneRequest.getBitbucketServerUrl() + REST_API_SUFFIX + API_PROJECTS
+                + "/" + cloneRequest.getProjectKey() + API_REPOSITORIES + "?limit=" + PROJECT_COUNT_TO_CLONE;
+    }
+
+    private final void cloneRepository(final String userName, final String password, final String repoDir, final String repoURL) throws GitAPIException {
+        log.info("Going to clone repo {},Repository will be stored at {}", repoURL, repoDir);
         Git.cloneRepository()
                 .setURI(repoURL)
                 .setDirectory(new File(repoDir))
