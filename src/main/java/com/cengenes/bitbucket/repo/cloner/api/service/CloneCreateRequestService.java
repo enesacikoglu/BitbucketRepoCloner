@@ -1,7 +1,6 @@
 package com.cengenes.bitbucket.repo.cloner.api.service;
 
 
-import com.cengenes.bitbucket.repo.cloner.api.model.Repo;
 import com.cengenes.bitbucket.repo.cloner.api.model.request.CloneRequest;
 import com.cengenes.bitbucket.repo.cloner.api.model.response.RepoCloneResponse;
 import com.cengenes.bitbucket.repo.cloner.api.model.response.ResponseStatusType;
