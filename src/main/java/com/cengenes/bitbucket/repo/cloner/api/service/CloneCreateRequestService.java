@@ -1,6 +1,5 @@
 package com.cengenes.bitbucket.repo.cloner.api.service;
 
-
 import com.cengenes.bitbucket.repo.cloner.api.model.request.CloneRequest;
 import com.cengenes.bitbucket.repo.cloner.api.model.response.RepoCloneResponse;
 import com.cengenes.bitbucket.repo.cloner.api.model.response.ResponseStatusType;
@@ -43,17 +42,20 @@ public class CloneCreateRequestService {
             final Optional<JSONArray> repositories = obtainRepositories(cloneRequest);
             if (repositories.isPresent()) {
                 final Stream<Object> objectStream = arrayToStream(repositories.get());
-                objectStream.filter(Objects::nonNull).map(object->(JSONObject)object).forEach(repo -> {
+                objectStream.filter(Objects::nonNull).map(object -> (JSONObject) object).forEach(repo -> {
                     String repoName = repo.getString("name");
-                    String repoURL = repo.getString("href");
-                            try {
-                                cloneRepository(cloneRequest.getUserName(), cloneRequest.getPassword(), getLocalRepoDir(cloneRequest, repoName), repoURL);
-                                repoCloneResponse.setStatus(ResponseStatusType.SUCCESS.getValue());
-                            } catch (GitAPIException e) {
-                                log.error("Error on cloning Repos {}", e);
-                            }
+                    final JSONArray cloneURLs = (JSONArray) ((JSONObject) repo.get("links")).get("clone");
+                    arrayToStream(cloneURLs).map(urls->(JSONObject) urls).filter(httpUrl->httpUrl.get("name").equals("http")).forEach(url -> {
+                        String repoURL = url.getString("href");
+                        try {
+                            cloneRepository(cloneRequest.getUserName(), cloneRequest.getPassword(), getLocalRepoDir(cloneRequest, repoName), repoURL);
+                            repoCloneResponse.setStatus(ResponseStatusType.SUCCESS.getValue());
+                        } catch (GitAPIException e) {
+                            log.error("Error on cloning Repos {}", e);
                         }
-                );
+                    });
+
+                });
             }
         } catch (UnirestException e) {
             log.error("Error on obtaining Repos {}", e);
