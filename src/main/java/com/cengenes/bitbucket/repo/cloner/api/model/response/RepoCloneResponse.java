@@ -5,6 +5,9 @@ public final class  RepoCloneResponse {
 
     private String status;
 
+    public RepoCloneResponse() {
+    }
+
     public RepoCloneResponse(String status) {
         this.status = status;
     }

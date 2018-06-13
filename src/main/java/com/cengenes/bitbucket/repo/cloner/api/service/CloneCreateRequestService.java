@@ -3,7 +3,6 @@ package com.cengenes.bitbucket.repo.cloner.api.service;
 import com.cengenes.bitbucket.repo.cloner.api.model.request.CloneRequest;
 import com.cengenes.bitbucket.repo.cloner.api.model.response.RepoCloneResponse;
 import com.cengenes.bitbucket.repo.cloner.api.model.response.ResponseStatusType;
-import org.springframework.stereotype.Service;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import org.apache.logging.log4j.LogManager;
@@ -13,6 +12,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.util.Objects;
@@ -25,17 +25,11 @@ public class CloneCreateRequestService {
 
     private final Logger log = LogManager.getLogger(this.getClass());
 
-    private final String REST_API_SUFFIX;
-    private final String API_PROJECTS;
-    private final String API_REPOSITORIES;
+    private final String REST_API_SUFFIX = "/rest/api/1.0";
+    private final String API_PROJECTS = "/projects";
+    private final String API_REPOSITORIES = "/repos";
 
-    public CloneCreateRequestService() {
-        REST_API_SUFFIX = "/rest/api/1.0";
-        API_PROJECTS = "/projects";
-        API_REPOSITORIES = "/repos";
-    }
-
-    public final RepoCloneResponse cloneRepos(CloneRequest cloneRequest) {
+    public RepoCloneResponse cloneRepos(CloneRequest cloneRequest) {
         final RepoCloneResponse repoCloneResponse = new RepoCloneResponse(ResponseStatusType.FAILURE.getValue());
         // Obtain repos
         try {
@@ -45,7 +39,7 @@ public class CloneCreateRequestService {
                 objectStream.filter(Objects::nonNull).map(object -> (JSONObject) object).forEach(repo -> {
                     String repoName = repo.getString("name");
                     final JSONArray cloneURLs = (JSONArray) ((JSONObject) repo.get("links")).get("clone");
-                    arrayToStream(cloneURLs).map(urls->(JSONObject) urls).filter(httpUrl->httpUrl.get("name").equals("http")).forEach(url -> {
+                    arrayToStream(cloneURLs).map(urls -> (JSONObject) urls).filter(httpUrl -> httpUrl.get("name").equals("http")).forEach(url -> {
                         String repoURL = url.getString("href");
                         try {
                             cloneRepository(cloneRequest.getUserName(), cloneRequest.getPassword(), getLocalRepoDir(cloneRequest, repoName), repoURL);
