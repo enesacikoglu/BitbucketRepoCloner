@@ -26,7 +26,7 @@ public class CloneRepoController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/clone")
-    public RepoCloneResponse clone(@Valid @RequestBody final CloneRequest cloneRequest) {
+    public RepoCloneResponse clone(@Valid @RequestBody CloneRequest cloneRequest) {
         return cloneCreateRequestService.cloneRepos(cloneRequest);
     }
 }
