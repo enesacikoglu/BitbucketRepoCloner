@@ -44,7 +44,7 @@
 		<dependency>
 			<groupId>org.eclipse.jgit</groupId>
 			<artifactId>org.eclipse.jgit</artifactId>
-			<version>RELEASE</version>
+			<version>3.5.3.201412180710-r</version>
 		</dependency>
 
 
